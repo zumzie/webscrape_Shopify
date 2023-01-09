@@ -53,6 +53,7 @@ def organize_styleData():
         created = item['created_at']
         description = item['body_html']
         product_type = item['product_type']
+        product_id = item['id']
 
         for image in item['images']:
             try:
@@ -69,30 +70,63 @@ def organize_styleData():
             price = variant['price']
             sku = variant['sku']
             available = variant['available']
-            color_option = variant['option2']
+            size_name = variant['option2']
 
-        product = {
-            'title': title,
-            'handle': handle,
-            'created': created,
-            'product_type': product_type,
-            'price': price,
+        # Check if option is Color or Size
+        if option_name == 'Color':
+            color_option = option_values
+        elif option_name != 'Color':
+            color_option = "null"
+
+        if option_name == 'Size':
+            size_name = size_name
+        else:
+            pass
+  
+        # Add prices, colors, and sizes into their own dictionary
+        # this structures the data to the bulk endpoint
+        # Style price
+        price = {
+            'price_label': 'USD',
+            'price_currency': 'USD',
+            'price_wholesale': price
+        }
+        # Style color
+        color = {
+            'color_name': color_option,
+            'color_code': color_option,
+        }
+
+        # Style size
+        size = {
+            'size_name': size_name,
+            'size_code': size_name,
+        }      
+
+        # Add all values into another dictionary and add peripheral dictionaries from above
+        # this will put the above dictionaries into a list
+        style = {
+            'style_name': title,
+            'silhouette': product_type,
             'sku': sku,
             'available': available,
             'image': imagesrc,
             'option': option_name,
-            'option_values': option_values,
-            'option2': color_option   
+            'size_option': option_values,
+            'prices': [price],
+            'colors': [color],
+            'sizes': [size]
         }
 
+        # Create a dictionary and assign it to the style key
         style_dict = {
-            "style": [product]
-        }
-            
+            "style": [style],
+        }             
+
         product_list.append(style_dict)
-        for style in style_dict:
+        for styled in product_list:
             bulkstyle_dict = {
-                "bulk_styles": product_list
+                "bulk_styles": style_dict,
             }
     return bulkstyle_dict
 
