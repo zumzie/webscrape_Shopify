@@ -96,8 +96,6 @@ def organize_styleData():
             }
     return bulkstyle_dict
 
-print(organize_styleData())
-
 # Dump organized data into json file
 with open('clean_productdata.json', 'w', encoding='utf-8') as f:
     json.dump(organize_styleData(), f, ensure_ascii=False, indent=4)
