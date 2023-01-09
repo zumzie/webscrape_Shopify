@@ -6,6 +6,7 @@ import grab_token as grab
 from io import StringIO
 from html.parser import HTMLParser
 import csv
+import os
 
 url = "https://gstq.com/products.json?limit=250&page=1"
 
@@ -39,7 +40,7 @@ def strip_tags(html):
 def get_styleData():
     style_request = requests.get(url)
     style_data = style_request.json()
-    with open('data.json', 'w', encoding='utf-8') as f:
+    with open(os.path.join('G:\DEVL\webscrape_joor\misc','data.json'), 'w', encoding='utf-8') as f:
         json.dump(style_data, f, ensure_ascii=False, indent=4)
     return style_data
 
@@ -79,7 +80,7 @@ def organize_styleData():
             color_option = "null"
 
         if option_name == 'Size':
-            size_name = size_name
+            size_name = option_values
         else:
             pass
   
@@ -100,7 +101,6 @@ def organize_styleData():
         # Style size
         size = {
             'size_name': size_name,
-            'size_code': size_name,
         }      
 
         # Add all values into another dictionary and add peripheral dictionaries from above
@@ -112,7 +112,6 @@ def organize_styleData():
             'available': available,
             'image': imagesrc,
             'option': option_name,
-            'size_option': option_values,
             'prices': [price],
             'colors': [color],
             'sizes': [size]
@@ -121,17 +120,23 @@ def organize_styleData():
         # Create a dictionary and assign it to the style key
         style_dict = {
             "style": [style],
-        }             
+        }
+    
+        bulkstyle_dict = {
+            "bulk_style": style_dict
+        }
 
         product_list.append(style_dict)
-        for styled in product_list:
-            bulkstyle_dict = {
-                "bulk_styles": style_dict,
-            }
+    for x in product_list:
+        bulkstyle_dict = {
+            "bulk_style": product_list
+    }
+
+
     return bulkstyle_dict
 
 # Dump organized data into json file
-with open('clean_productdata.json', 'w', encoding='utf-8') as f:
+with open(os.path.join('G:\DEVL\webscrape_joor\misc','clean_productdata.json'), 'w', encoding='utf-8') as f:
     json.dump(organize_styleData(), f, ensure_ascii=False, indent=4)
 
 
@@ -161,11 +166,7 @@ header = {
 }
 
 
-
-
-
-
-req = requests.get(base_url+url, headers=header)
+req = requests.get(base_url+url, header)
 
 #print(req_class)
 print("\n\n")
