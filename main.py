@@ -66,18 +66,21 @@ def organize_styleData():
             option_values = option['values']
 
         for variant in item['variants']:
-            print(variant)
             size_list = []
             price = variant['price']
-            sku = variant['sku']
-            upc = variant['id']
-            prod_id = variant['product_id']
+            sku = str(variant['sku'])
+            upc = str(variant['id'])
+            prod_id = str(variant['product_id'])
             available = variant['available']
-            size_name = variant['option2']
+            #size_name = variant['option2']
             if item['options'][0]['name'] == 'Color' and item['options'][0]['position'] == 1:
                 color_name = variant['option1']
             else:
                 color_name = None
+            if item['options'][0]['name'] == 'Size' and item['options'][0]['position'] == 2:
+                size_name = variant['option2']
+            else:
+                size_name = None
                 
 
         # Check if option is Color or Size
@@ -108,38 +111,33 @@ def organize_styleData():
 
         # Style size
  
-        size = {
-            'size_name': size_name
-        }
         if size_name is not None and len(size_name)>0:     
             for sizes in size_name:
                 try:
                     size_list.append({"size_name": sizes})
                 except:
-                    pass
-            size = {
-                'sizes': size_list
-            }
-        else:
-            size = {
-                'sizes': []
-            }
-        upcs = {
-                'upc': upc
+                    size_list.append({"size_name": None})
+
+        try:
+            upcs = {
+                    'upc': color_name[:3] + str(upc)
+                }
+        except:
+            upcs = {
+                'upc': color_name
             }
 
         style = {
             'style_name': title,
-            'style_number': sku or upc,
-            'style_id': prod_id,
+            'style_number': str(sku) or str(upc),
+            'style_identifier': str(prod_id) or str(upc),
             'style_description': description,
             'silhouette': product_type,
             'available': available,
             'image': imagesrc,
             'prices': [price],
             'colors': [color],
-            'sizes': [size],
-            'upcs': [upcs]            
+            'sizes': size_list,          
         }
 
 
@@ -164,7 +162,7 @@ with open(os.path.join('G:\DEVL\webscrape_joor\misc','clean_productdata.json'), 
 
 
 # joor base url
-base_url = "https://apisandbox.jooraccess.com/v2/"
+base_url = "https://apisandbox.jooraccess.com/v2/style-number/?count=100"
 bulk_url = "https://apisandbox.jooraccess.com/v2/bulk-style"
 url = "style-number/?count=100"
 
@@ -190,9 +188,7 @@ header = {
 }
 
 
-req = requests.get(base_url+url, header)
-
-response = requests.post(bulk_url, organize_styleData(), headers=header)
+req = requests.get(base_url, header)
 
 
 #print(req_class)
@@ -205,6 +201,9 @@ print(req.headers)
 print("\n\n")
 print(req.request)
 
+
+
+response = requests.post(bulk_url, organize_styleData(), headers=header)
 #print(req_class)
 print("\n\n")
 print(response)
@@ -214,7 +213,6 @@ print("\n\n")
 print(response.headers)
 print("\n\n")
 print(response.request)
-
 
 
 
