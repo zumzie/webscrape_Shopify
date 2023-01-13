@@ -46,7 +46,6 @@ def get_styleData():
 
 # Organize the style data that was pulled
 def organize_styleData():
-    style_data = get_styleData()
 
     for item in data["products"]:
         title = item['title']
@@ -63,21 +62,29 @@ def organize_styleData():
                 imagesrc = 'None'
 
         for option in item['options']:
-
             option_name = option['name']
             option_values = option['values']
 
         for variant in item['variants']:
+            print(variant)
+            size_list = []
             price = variant['price']
             sku = variant['sku']
+            upc = variant['id']
+            prod_id = variant['product_id']
             available = variant['available']
             size_name = variant['option2']
+            if item['options'][0]['name'] == 'Color' and item['options'][0]['position'] == 1:
+                color_name = variant['option1']
+            else:
+                color_name = None
+                
 
         # Check if option is Color or Size
         if option_name == 'Color':
             color_option = option_values
         elif option_name != 'Color':
-            color_option = "null"
+            color_option = None
 
         if option_name == 'Size':
             size_name = option_values
@@ -90,58 +97,75 @@ def organize_styleData():
         price = {
             'price_label': 'USD',
             'price_currency': 'USD',
-            'price_wholesale': price
+            'price_wholesale': price,
+            'price_retail': price
         }
         # Style color
         color = {
-            'color_name': color_option,
-            'color_code': color_option,
+            'color_name': color_name,
+            'color_code': color_name,
         }
 
         # Style size
+ 
         size = {
-            'size_name': size_name,
-        }      
+            'size_name': size_name
+        }
+        if size_name is not None and len(size_name)>0:     
+            for sizes in size_name:
+                try:
+                    size_list.append({"size_name": sizes})
+                except:
+                    pass
+            size = {
+                'sizes': size_list
+            }
+        else:
+            size = {
+                'sizes': []
+            }
+        upcs = {
+                'upc': upc
+            }
 
-        # Add all values into another dictionary and add peripheral dictionaries from above
-        # this will put the above dictionaries into a list
         style = {
             'style_name': title,
+            'style_number': sku or upc,
+            'style_id': prod_id,
+            'style_description': description,
             'silhouette': product_type,
-            'sku': sku,
             'available': available,
             'image': imagesrc,
-            'option': option_name,
             'prices': [price],
             'colors': [color],
-            'sizes': [size]
+            'sizes': [size],
+            'upcs': [upcs]            
         }
+
 
         # Create a dictionary and assign it to the style key
         style_dict = {
             "style": [style],
         }
+
+        product_list.append(style)
     
-        bulkstyle_dict = {
-            "bulk_style": style_dict
+    bulkstyle_dict = {
+        "bulk_styles": {
+            "style": product_list
         }
-
-        product_list.append(style_dict)
-    for x in product_list:
-        bulkstyle_dict = {
-            "bulk_style": product_list
     }
-
 
     return bulkstyle_dict
 
 # Dump organized data into json file
 with open(os.path.join('G:\DEVL\webscrape_joor\misc','clean_productdata.json'), 'w', encoding='utf-8') as f:
-    json.dump(organize_styleData(), f, ensure_ascii=False, indent=4)
+    json.dump(organize_styleData(), f, ensure_ascii=False, indent=2)
 
 
 # joor base url
 base_url = "https://apisandbox.jooraccess.com/v2/"
+bulk_url = "https://apisandbox.jooraccess.com/v2/bulk-style"
 url = "style-number/?count=100"
 
 # joor class to initialize header
@@ -168,6 +192,9 @@ header = {
 
 req = requests.get(base_url+url, header)
 
+response = requests.post(bulk_url, organize_styleData(), headers=header)
+
+
 #print(req_class)
 print("\n\n")
 print(req)
@@ -177,6 +204,16 @@ print("\n\n")
 print(req.headers)
 print("\n\n")
 print(req.request)
+
+#print(req_class)
+print("\n\n")
+print(response)
+print("\n\n")
+print(response.content)
+print("\n\n")
+print(response.headers)
+print("\n\n")
+print(response.request)
 
 
 
